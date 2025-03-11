@@ -1,0 +1,132 @@
+/* Signup.css */
+
+/* General body styling */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f7fafc;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Ensure the body covers the full viewport height */
+}
+
+/* Container for the form */
+.signup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Ensure the container covers the full viewport height */
+  background-color: #f7fafc; /* Light gray background */
+  padding: 1rem; /* Add some padding to avoid edge issues */
+}
+
+/* Form box */
+.signup-box {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Form title */
+.signup-box h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+/* Role buttons */
+.role-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem; /* Add gap between buttons */
+  margin-bottom: 1rem;
+}
+
+.role-buttons button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.role-buttons button.active {
+  background-color: #48bb78;
+  color: #ffffff;
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 0.25rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #4a5568;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #48bb78;
+  outline: none;
+}
+
+/* Submit button */
+.submit-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #48bb78;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 1rem;
+}
+
+.submit-button:hover {
+  background-color: #38a169;
+}
+
+/* Login link */
+.login-link {
+  font-size: 0.875rem;
+  color: #4a5568;
+  margin-top: 1rem;
+}
+
+.login-link a {
+  color: #48bb78;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}

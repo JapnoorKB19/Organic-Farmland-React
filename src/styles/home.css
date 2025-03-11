@@ -1,0 +1,196 @@
+/* Global Styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom, #e9f5db, #b4d4a8);
+  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Heading */
+.home-container h1 {
+  font-size: 3rem;
+  color: #2c5f2d;
+  margin-bottom: 10px;
+}
+.home-container span {
+  color: #5fa357;
+}
+
+/* Subheading */
+.home-container p {
+  font-size: 1.2rem;
+  color: #3d3d3d;
+  max-width: 600px;
+}
+
+/* Image Styling */
+.farm-image {
+  width: 80%;
+  max-width: 500px;
+  margin-top: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+.farm-image:hover {
+  transform: scale(1.05);
+}
+
+/* Buttons */
+.btn-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.btn {
+  padding: 12px 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 25px;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.signup-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+.signup-btn:hover {
+  background: #218838;
+  transform: translateY(-3px);
+}
+
+.login-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+.login-btn:hover {
+  background: #0056b3;
+  transform: translateY(-3px);
+}
+
+@media (min-width: 640px) {
+  .btn-container {
+    flex-direction: row;
+  }
+}
+
+
+/* 🌿 Soft pastel background with gentle gradient */
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(to bottom right, #fdfcdc, #d4f8e8); /* Soft warm tones */
+  text-align: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* 🍃 Cute, card-like content box */
+.home-content {
+  width: 90%;
+  max-width: 850px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease-in-out;
+}
+
+.home-content:hover {
+  transform: scale(1.03);
+}
+
+/* 🌸 Aesthetic image styling */
+.home-image {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 25px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.home-image:hover {
+  transform: scale(1.08);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* 💕 Playful buttons */
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+/* 🩷 Cute button styles */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 30px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  border-radius: 12px;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 🌷 Dreamy floating effect */
+.button::before {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 10%, transparent 70%);
+  transition: 0.6s ease-in-out;
+}
+
+.button:hover::before {
+  top: 0;
+  left: 0;
+}
+
+/* 🎀 Sign Up Button */
+.button.signup {
+  background-color: #ffdde1;
+  color: #6b4226;
+}
+
+.button.signup:hover {
+  background-color: #ffb3c1;
+  transform: translateY(-5px);
+}
+
+/* 🍃 Login Button */
+.button.login {
+  background-color: #c7e9b0;
+  color: #2d6a4f;
+}
+
+.button.login:hover {
+  background-color: #74c69d;
+  transform: translateY(-5px);
+}

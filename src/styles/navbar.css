@@ -1,0 +1,24 @@
+nav {
+  width: 100%;
+  padding: 15px 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative; /* Ensure it doesn’t overlap */
+  z-index: 10;
+}
+
+/* Add margin BELOW navbar */
+.navbar-spacing {
+  margin-bottom: 20px; /* Adjust this value for spacing */
+}
+
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
