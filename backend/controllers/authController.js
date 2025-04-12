@@ -2,54 +2,98 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// User Signup
-const signup = async (req, res) => {
+const register = async (req, res) => {
+
+    console.log("Register endpoint hit with data:", req.body);
+
+
     try {
-        const { name, email, password, role } = req.body;
-        
-        // Check if user exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) return res.status(400).json({ message: "User already exists" });
+      const {
+        name,
+        email,
+        password,
+        role,
+        phone,
+        farmName,
+        farmLocation,
+        farmCity,
+        farmState,
+        farmCountry,
+        farmZip
+      } = req.body;
+  
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+  
+      // Hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+  
+      // Create new user object
+      const newUser = new User({
+        name,
+        email,
+        phone,
+        role,
+        password: hashedPassword,
+      });
+  
+      // If farmer, assign farm details directly to schema fields
+      if (role === "farmer") {
+        newUser.farmName = farmName;
+        newUser.address = farmLocation;
+        newUser.city = farmCity;
+        newUser.state = farmState;
+        newUser.country = farmCountry;
+        newUser.zipCode = farmZip;
+      }
+      console.log("Registering user:", newUser);
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Create new user
-        const user = new User({ name, email, password: hashedPassword, role });
-        await user.save();
-
-        res.status(201).json({ message: "User registered successfully" });
+      await newUser.save();
+  
+      res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Server error" });
     }
-};
+  };
 
-// User Login
+
 const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        // Check if user exists
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(400).json({ message: "Invalid credentials" });
 
-        // Compare password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
-        // Generate token
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-        res.json({ token, user });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
+    res.json({ token, user });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-// User Logout (Handled on Frontend by removing token)
 const logout = (req, res) => {
-    res.json({ message: "Logout successful" });
+  res.json({ message: "Logout successful" });
 };
 
-module.exports = { signup, login, logout };
+const test = (req, res) => {
+    console.log("Test route in authController hit");
+    res.send("AuthController Test Route Working");
+  };
+  
+module.exports = { register, login, logout, test };
