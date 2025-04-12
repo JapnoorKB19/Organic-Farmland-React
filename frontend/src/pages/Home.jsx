@@ -1,45 +1,73 @@
+// src/pages/Home.jsx
 import React from "react";
+import { Container, Typography, Button, Box } from "@mui/material";
 import { Link } from "react-router-dom";
-import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
-import { Button, Typography, Box, Stack, Container } from "@mui/material";
-import farmImage from "../assets/images/ocf2.png";
+import ocf2 from "../assets/images/ocf2.png"; // Importing the image
 
 const Home = () => {
   return (
     <Container maxWidth="md" sx={{ textAlign: "center", mt: 8 }}>
-      <Typography variant="h3" fontWeight="bold" color="green" gutterBottom>
-        Welcome to <Typography component="span" color="darkgreen">Organic Farmland</Typography>
-      </Typography>
-      <Typography variant="h6" color="textSecondary" sx={{ mb: 4 }}>
-        Connecting farmers and consumers directly for fresh, organic produce.
-      </Typography>
-
+      {/* Image Section */}
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-        <img src={farmImage} alt="Farmland" style={{ maxWidth: "100%", borderRadius: "10px" }} />
+        <img 
+          src={ocf2} 
+          alt="Farm Connect" 
+          style={{
+            width: "100%",
+            maxWidth: "400px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        />
       </Box>
 
-      <Stack spacing={2} direction="row" justifyContent="center">
+      {/* Text Section */}
+      <Typography variant="h3" fontWeight="bold" gutterBottom color="#2E7D32">
+        Welcome to Farm Connect 🌿
+      </Typography>
+      <Typography variant="body1" fontSize="18px" color="text.secondary" paragraph>
+        Your one-stop platform for connecting with local organic farmers.
+        Discover fresh and sustainable produce directly from trusted farmers near you.
+      </Typography>
+
+      {/* Buttons Section */}
+      <Box mt={4}>
         <Button
-          component={Link}
-          to="/signup"
           variant="contained"
           color="success"
-          startIcon={<FaUserPlus />}
-          sx={{ px: 3 }}
+          component={Link}
+          to="/search"
+          sx={{
+            mx: 1,
+            borderRadius: "12px",
+            px: 3,
+            py: 1,
+            fontSize: "16px",
+            transition: "0.3s",
+            "&:hover": { backgroundColor: "#1B5E20" },
+          }}
         >
-          Sign Up
+          Search Farmers
         </Button>
         <Button
+          variant="outlined"
+          color="success"
           component={Link}
-          to="/login"
-          variant="contained"
-          color="primary"
-          startIcon={<FaSignInAlt />}
-          sx={{ px: 3 }}
+          to="/blog"
+          sx={{
+            mx: 1,
+            borderRadius: "12px",
+            px: 3,
+            py: 1,
+            fontSize: "16px",
+            borderWidth: "2px",
+            transition: "0.3s",
+            "&:hover": { borderColor: "#1B5E20", color: "#1B5E20" },
+          }}
         >
-          Login
+          Read Blog
         </Button>
-      </Stack>
+      </Box>
     </Container>
   );
 };

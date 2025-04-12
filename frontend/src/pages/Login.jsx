@@ -1,5 +1,4 @@
-// src/pages/Login.jsx
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { 
@@ -19,10 +18,18 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 
+
 const Login = () => {
   const { login, error } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      navigate('/')
+    }
+  }, [navigate])
   
   // Get redirect path from location state or default to home
   const from = location.state?.from?.pathname || '/'
@@ -81,21 +88,35 @@ const Login = () => {
     }
     
     setIsSubmitting(true)
-    
+
     try {
-      await login(formData.email, formData.password)
-      navigate(from, { replace: true })
+      const user = await login(formData.email, formData.password)
+
+      // 👇 Role-based redirection
+      switch (user.role) {
+        case 'farmer':
+          navigate('/dashboard/farmer', { replace: true })
+          break
+        case 'consumer':
+          navigate('/dashboard/consumer', { replace: true })
+          break
+        case 'admin':
+          navigate('/dashboard/admin', { replace: true })
+          break
+        default:
+          navigate('/', { replace: true }) // fallback
+      }
     } catch (err) {
       setLoginError(
-        err.response?.data?.message || 
-        error || 
+        err.response?.data?.message ||
+        error ||
         'Failed to login. Please check your credentials.'
       )
     } finally {
       setIsSubmitting(false)
     }
   }
-  
+
   return (
     <Container component="main" maxWidth="xs">
       <Paper 
@@ -109,7 +130,7 @@ const Login = () => {
           borderRadius: 2
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
+        <Avatar sx={{ m: 1, bgcolor: 'success.main' }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
@@ -136,6 +157,14 @@ const Login = () => {
             onChange={handleChange}
             error={Boolean(formErrors.email)}
             helperText={formErrors.email}
+            sx={{
+              '& label.Mui-focused': { color: 'success.main' },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: 'success.light' },
+                '&:hover fieldset': { borderColor: 'success.main' },
+                '&.Mui-focused fieldset': { borderColor: 'success.main' },
+              },
+            }}
           />
           <TextField
             margin="normal"
@@ -163,12 +192,20 @@ const Login = () => {
                 </InputAdornment>
               ),
             }}
+            sx={{
+              '& label.Mui-focused': { color: 'success.main' },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: 'success.light' },
+                '&:hover fieldset': { borderColor: 'success.main' },
+                '&.Mui-focused fieldset': { borderColor: 'success.main' },
+              },
+            }}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            sx={{ mt: 3, mb: 2, bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark'}}}
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Signing in...' : 'Sign In'}
@@ -176,14 +213,14 @@ const Login = () => {
           <Grid container>
             <Grid item xs>
               <Link to="/forgot-password" style={{ textDecoration: 'none' }}>
-                <Typography variant="body2" color="primary">
+                <Typography variant="body2" color="success">
                   Forgot password?
                 </Typography>
               </Link>
             </Grid>
             <Grid item>
               <Link to="/register" style={{ textDecoration: 'none' }}>
-                <Typography variant="body2" color="primary">
+                <Typography variant="body2" color="success">
                   {"Don't have an account? Sign Up"}
                 </Typography>
               </Link>

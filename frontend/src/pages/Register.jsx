@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { TextField, Button, RadioGroup, FormControlLabel, Radio, Stepper, Step, StepLabel, Typography, CircularProgress, Box } from "@mui/material";
-import { register } from "../api/authApi"; // Replace with your actual API call
+import {
+  TextField,
+  Button,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Stepper,
+  Step,
+  StepLabel,
+  Typography,
+  CircularProgress,
+  Box,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
+import API from "../utils/api";
 import { io } from "socket.io-client";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
-const socket = io("http://localhost:5000"); // Adjust backend URL
+const socket = io("http://localhost:5000");
 const steps = ["Select Role", "Personal Details", "Set Password"];
 
 const Register = () => {
@@ -12,7 +27,7 @@ const Register = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registerError, setRegisterError] = useState("");
-  
+
   const [formData, setFormData] = useState({
     role: "consumer",
     name: "",
@@ -21,10 +36,16 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     farmName: "",
-    farmLocation: ""
+    farmLocation: "",
+    farmCity: "",
+    farmState: "",
+    farmCountry: "",
+    farmZip: "",
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     socket.on("emailExists", (msg) => {
@@ -56,10 +77,18 @@ const Register = () => {
       if (formData.role === "farmer") {
         if (!formData.farmName) errors.farmName = "Farm name is required";
         if (!formData.farmLocation) errors.farmLocation = "Farm location is required";
+        if (!formData.farmCity) errors.farmCity = "City is required";
+        if (!formData.farmState) errors.farmState = "State is required";
+        if (!formData.farmCountry) errors.farmCountry = "Country is required";
+        if (!formData.farmZip) errors.farmZip = "Zip code is required";
       }
     } else if (step === 2) {
       if (!formData.password) errors.password = "Password is required";
-      if (formData.password !== formData.confirmPassword) errors.confirmPassword = "Passwords do not match";
+      if (formData.password.length < 8) {
+        errors.password = "Password must be at least 8 characters";
+      }
+      if (formData.password !== formData.confirmPassword)
+        errors.confirmPassword = "Passwords do not match";
     }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -71,6 +100,10 @@ const Register = () => {
     }
   };
 
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep(activeStep)) return;
@@ -78,7 +111,7 @@ const Register = () => {
     setRegisterError("");
     try {
       const { confirmPassword, ...registerData } = formData;
-      await register(registerData);
+      await API.post("/auth/register", registerData);
       navigate(formData.role === "farmer" ? "/farm-setup" : "/");
     } catch (err) {
       setRegisterError(err.message || "Registration failed. Try again.");
@@ -87,17 +120,49 @@ const Register = () => {
     }
   };
 
-  const getStepContent = (step) => {
-    switch (step) {
-      case 0:
-        return (
+  return (
+    <Box
+      sx={{
+        maxWidth: 500,
+        width: "100%",
+        mx: "auto",
+        p: 3,
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        borderRadius: 2,
+        boxShadow: 3,
+        backgroundColor: "#f0fdf4",
+      }}
+    >
+      <Typography variant="h5" sx={{ textAlign: "center", fontWeight: "bold", color: "#3a7d44" }}>
+        Sign Up
+      </Typography>
+      <Stepper activeStep={activeStep} sx={{ mb: 2 }}>
+        {steps.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        {activeStep === 0 && (
           <RadioGroup name="role" value={formData.role} onChange={handleChange}>
-            <FormControlLabel value="consumer" control={<Radio />} label="Consumer - I want to buy produce" />
-            <FormControlLabel value="farmer" control={<Radio />} label="Farmer - I want to sell produce" />
+            <FormControlLabel
+              value="consumer"
+              control={<Radio sx={{ color: "#3a7d44" }} />}
+              label="Consumer - I want to buy produce"
+              sx={{ color: "#4b5320" }}
+            />
+            <FormControlLabel
+              value="farmer"
+              control={<Radio sx={{ color: "#4b5320" }} />}
+              label="Farmer - I want to sell produce"
+              sx={{ color: "#4b5320" }}
+            />
           </RadioGroup>
-        );
-      case 1:
-        return (
+        )}
+        {activeStep === 1 && (
           <>
             <TextField fullWidth label="Full Name" name="name" value={formData.name} onChange={handleChange} error={!!formErrors.name} helperText={formErrors.name} />
             <TextField fullWidth label="Email" name="email" value={formData.email} onChange={handleChange} error={!!formErrors.email} helperText={formErrors.email} />
@@ -106,39 +171,73 @@ const Register = () => {
               <>
                 <TextField fullWidth label="Farm Name" name="farmName" value={formData.farmName} onChange={handleChange} error={!!formErrors.farmName} helperText={formErrors.farmName} />
                 <TextField fullWidth label="Farm Location" name="farmLocation" value={formData.farmLocation} onChange={handleChange} error={!!formErrors.farmLocation} helperText={formErrors.farmLocation} />
+                <TextField fullWidth label="City" name="farmCity" value={formData.farmCity} onChange={handleChange} error={!!formErrors.farmCity} helperText={formErrors.farmCity} />
+                <TextField fullWidth label="State" name="farmState" value={formData.farmState} onChange={handleChange} error={!!formErrors.farmState} helperText={formErrors.farmState} />
+                <TextField fullWidth label="Country" name="farmCountry" value={formData.farmCountry} onChange={handleChange} error={!!formErrors.farmCountry} helperText={formErrors.farmCountry} />
+                <TextField fullWidth label="Zip Code" name="farmZip" value={formData.farmZip} onChange={handleChange} error={!!formErrors.farmZip} helperText={formErrors.farmZip} />
               </>
             )}
           </>
-        );
-      case 2:
-        return (
-          <>
-            <TextField fullWidth type="password" label="Password" name="password" value={formData.password} onChange={handleChange} error={!!formErrors.password} helperText={formErrors.password} />
-            <TextField fullWidth type="password" label="Confirm Password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} error={!!formErrors.confirmPassword} helperText={formErrors.confirmPassword} />
-          </>
-        );
-      default:
-        return "Unknown step";
-    }
-  };
-
-  return (
-    <Box sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
-      <Typography variant="h5">Sign Up</Typography>
-      <Stepper activeStep={activeStep}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-      <form onSubmit={handleSubmit}>
-        {getStepContent(activeStep)}
-        {registerError && <Typography color="error">{registerError}</Typography>}
-        <Button onClick={handleNext} disabled={activeStep >= steps.length - 1}>Next</Button>
-        {activeStep === steps.length - 1 && (
-          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? <CircularProgress size={20} /> : "Register"}</Button>
         )}
+        {activeStep === 2 && (
+          <>
+            <TextField
+              fullWidth
+              type={showPassword ? "text" : "password"}
+              label="Password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              error={!!formErrors.password}
+              helperText={formErrors.password}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              fullWidth
+              type={showConfirmPassword ? "text" : "password"}
+              label="Confirm Password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              error={!!formErrors.confirmPassword}
+              helperText={formErrors.confirmPassword}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowConfirmPassword((prev) => !prev)} edge="end">
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </>
+        )}
+        {registerError && <Typography color="error">{registerError}</Typography>}
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+          {activeStep > 0 && (
+            <Button onClick={handleBack} variant="outlined" sx={{ backgroundColor: "#3a7d44", color: "#fff" }}>
+              Back
+            </Button>
+          )}
+          {activeStep < steps.length - 1 ? (
+            <Button onClick={handleNext} variant="contained" sx={{ backgroundColor: "#3a7d44", color: "#fff" }}>
+              Next
+            </Button>
+          ) : (
+            <Button type="submit" disabled={isSubmitting} variant="contained" sx={{ backgroundColor: "#6a994e", color: "#fff" }}>
+              {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Register"}
+            </Button>
+          )}
+        </Box>
       </form>
     </Box>
   );
