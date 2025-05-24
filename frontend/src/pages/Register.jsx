@@ -16,10 +16,8 @@ import {
   InputAdornment,
 } from "@mui/material";
 import API from "../utils/api";
-import { io } from "socket.io-client";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
-const socket = io("http://localhost:5000");
 const steps = ["Select Role", "Personal Details", "Set Password"];
 
 const Register = () => {
@@ -47,20 +45,11 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  useEffect(() => {
-    socket.on("emailExists", (msg) => {
-      setFormErrors((prevErrors) => ({ ...prevErrors, email: msg }));
-    });
-    return () => socket.off("emailExists");
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    if (name === "email") {
-      socket.emit("validateEmail", value);
-    }
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: "" });
     }
@@ -104,21 +93,32 @@ const Register = () => {
     setActiveStep((prevStep) => prevStep - 1);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateStep(activeStep)) return;
-    setIsSubmitting(true);
-    setRegisterError("");
-    try {
-      const { confirmPassword, ...registerData } = formData;
-      await API.post("/auth/register", registerData);
-      navigate(formData.role === "farmer" ? "/farm-setup" : "/");
-    } catch (err) {
-      setRegisterError(err.message || "Registration failed. Try again.");
-    } finally {
-      setIsSubmitting(false);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateStep(activeStep)) return;
+  setIsSubmitting(true);
+  setRegisterError("");
+  try {
+    const { confirmPassword, ...registerData } = formData;
+    await API.post("/auth/register", registerData);
+
+    // ✅ Redirect based on role
+    if (formData.role === "farmer") {
+      navigate("/dashboard/farmer");
+    } else if (formData.role === "consumer") {
+      navigate("/dashboard/consumer");
+    } else if (formData.role === "admin") {
+      navigate("/dashboard/admin");
+    } else {
+      navigate("/"); // fallback
     }
-  };
+  } catch (err) {
+    setRegisterError(err.message || "Registration failed. Try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <Box

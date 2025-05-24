@@ -7,7 +7,7 @@ const PrivateRoute = ({ children, allowedRoles }) => {
 
   if (!token) return <Navigate to="/login" replace />
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/unauthorized" replace />
   }
 
   return children

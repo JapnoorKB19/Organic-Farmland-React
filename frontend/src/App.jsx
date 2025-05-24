@@ -11,12 +11,20 @@ import FarmerDashboard from './pages/dashboards/FarmerDashboard'
 import ConsumerDashboard from './pages/dashboards/ConsumerDashboard'
 import AdminDashboard from './pages/dashboards/AdminDashboard'
 
+
 // Public Pages
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Search from './pages/Search'
 import BlogPage from './pages/Blogs/BlogPage'
+import Unauthorized from './pages/Unauthorized'
+
+import ExploreFarmers from './pages/ExploreFarmers'
+import BrowseProducts from './pages/BrowseProducts'
+import MyOrders from './pages/MyOrders'
+import ChatWithFarmers from './pages/ChatWithFarmers'
+import MyReviews from './pages/MyReviews'
 
 function App() {
   const { checkAuthStatus } = useAuth()
@@ -60,6 +68,15 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Quick Action Pages */}
+        <Route path="/explore-farmers" element={<ExploreFarmers />} />
+        <Route path="/products" element={<BrowseProducts />} />
+        <Route path="/orders" element={<MyOrders />} />
+        <Route path="/chat" element={<ChatWithFarmers />} />
+        <Route path="/my-reviews" element={<MyReviews />} />
+
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* 404 Page */}
         <Route path="*" element={<div>Page Not Found</div>} />
