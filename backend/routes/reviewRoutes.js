@@ -1,9 +1,6 @@
 const express = require("express");
 const { 
     addReview, 
-    getReviewsByFarmer, 
-    updateReview, 
-    deleteReview 
 } = require("../controllers/reviewController");
 const { authMiddleware } = require("../middleware/auth");
 
