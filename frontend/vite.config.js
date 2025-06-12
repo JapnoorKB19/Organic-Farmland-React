@@ -25,4 +25,7 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    include: ['hoist-non-react-statics', 'dom-helpers']
+  }
 })
