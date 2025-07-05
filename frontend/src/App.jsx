@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
+import { CartProvider } from './context/CartContext';
+import CartPage from './pages/CartPage';
+import { ChatProvider } from './context/ChatContext';
 
 // Common Components
 import Layout from './components/common/Layout'
@@ -34,6 +37,8 @@ function App() {
   }, [])
 
   return (
+    <CartProvider>
+      <ChatProvider>
     <Routes>
       <Route path="/" element={<Layout />}>
         {/* Public Routes */}
@@ -68,7 +73,7 @@ function App() {
             </PrivateRoute>
           }
         />
-
+        <Route path="/cart" element={<CartPage />} />
         {/* Quick Action Pages */}
         <Route path="/explore-farmers" element={<ExploreFarmers />} />
         <Route path="/products" element={<BrowseProducts />} />
@@ -82,6 +87,8 @@ function App() {
         <Route path="*" element={<div>Page Not Found</div>} />
       </Route>
     </Routes>
+    </ChatProvider>
+    </CartProvider>
   )
 }
 

@@ -134,7 +134,4 @@ module.exports = {
     updateFarmerProfile,
     getAllFarmers,
     getFarmerProducts,
-    addProduct,
-    updateProduct,
-    deleteProduct
 };

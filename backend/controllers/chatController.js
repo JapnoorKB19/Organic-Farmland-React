@@ -1,33 +1,84 @@
-const Message = require("../models/Message");
+// controllers/chatController.js
 
-// Send a message
-const sendMessage = async (req, res) => {
-    try {
-        const { receiverId, content } = req.body;
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
 
-        const message = new Message({ sender: req.user.id, receiver: receiverId, content });
-        await message.save();
+// Create or get existing conversation between sender and receiver
+const createConversation = async (req, res) => {
+  const { senderId, receiverId } = req.body;
 
-        res.status(201).json({ message: "Message sent", message });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
+  try {
+    let conversation = await Conversation.findOne({
+      participants: { $all: [senderId, receiverId] }
+    });
+
+    if (!conversation) {
+      conversation = new Conversation({
+        participants: [senderId, receiverId]
+      });
+      await conversation.save();
     }
+
+    res.status(200).json(conversation);
+  } catch (error) {
+    console.error('Create conversation error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
-// Get messages between two users
+// Get all conversations for a user
+const getConversations = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const conversations = await Conversation.find({
+      participants: userId
+    }).populate('participants', '_id name email'); // populate user details as needed
+
+    res.status(200).json(conversations);
+  } catch (error) {
+    console.error('Get conversations error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Create a new message in a conversation
+const createMessage = async (req, res) => {
+  const { chatId, senderId, text } = req.body;
+
+  try {
+    const message = new Message({
+      chatId,
+      senderId,
+      text
+    });
+
+    await message.save();
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('Create message error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get all messages for a conversation
 const getMessages = async (req, res) => {
-    try {
-        const messages = await Message.find({
-            $or: [
-                { sender: req.user.id, receiver: req.params.userId },
-                { sender: req.params.userId, receiver: req.user.id }
-            ]
-        }).sort({ createdAt: 1 });
+  const chatId = req.params.chatId;
 
-        res.json(messages);
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
+  try {
+    const messages = await Message.find({ chatId }).sort({ createdAt: 1 });
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error('Get messages error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
-module.exports = { sendMessage, getMessages };
+module.exports = {
+  createConversation,
+  getConversations,
+  createMessage,
+  getMessages
+};

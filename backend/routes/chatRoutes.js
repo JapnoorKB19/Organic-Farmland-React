@@ -1,16 +1,16 @@
-const express = require("express");
-const { 
-    sendMessage, 
-    getMessages 
-} = require("../controllers/chatController");
-const { authMiddleware } = require("../middleware/auth");
+const express = require('express');
+const {
+  createConversation,
+  getConversations,
+  createMessage,
+  getMessages
+} = require('../controllers/chatController');
 
 const router = express.Router();
 
-// Send a message (Protected)
-router.post("/", authMiddleware, sendMessage);
-
-// Get messages between users
-router.get("/:conversationId", authMiddleware, getMessages);
+router.post('/conversation', createConversation);
+router.get('/conversations/:userId', getConversations);
+router.post('/message', createMessage);
+router.get('/messages/:chatId', getMessages);
 
 module.exports = router;

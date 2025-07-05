@@ -1,17 +1,27 @@
 const express = require("express");
+const multer = require("multer");
 const {
-      getFarmerById,
-      updateFarmerProfile,
-      getAllFarmers,
-      getFarmerProducts,
-      addProduct,
-      updateProduct,
-      deleteProduct
+  getFarmerById,
+  updateFarmerProfile,
+  getAllFarmers,
+  getFarmerProducts
 } = require("../controllers/farmerController");
 
 const auth = require("../middleware/auth");
 
 const router = express.Router();
+
+// Configure multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // make sure this folder exists in your project root
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage });
 
 // Get all farmers
 router.get("/", getAllFarmers);
@@ -38,20 +48,6 @@ router.get("/search", async (req, res) => {
   }
 });
 
-
-
-// 🔽 Product-specific routes 🔽
-
-// Get all products by a specific farmer
 router.get("/:id/products", getFarmerProducts);
-
-// Add new product for farmer
-router.post("/:id/products", auth(), addProduct);
-
-// Update a specific product
-router.put("/:id/products/:productId", auth(), updateProduct);
-
-// Delete a specific product
-router.delete("/:id/products/:productId", auth(), deleteProduct);
 
 module.exports = router;

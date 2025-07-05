@@ -8,6 +8,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { MenuItem } from '@mui/material';
+import ChatWithConsumers from "../ChatWithConsumers";
+
+
 import {
   getFarmerProducts,
   addFarmerProduct,
@@ -18,6 +22,7 @@ import {
 const FarmerDashboard = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [chatOpen, setChatOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user'));
   const userName = user?.name || 'Farmer';
@@ -28,7 +33,7 @@ const FarmerDashboard = () => {
   const [error, setError] = useState(null);
 
   const [newProduct, setNewProduct] = useState({
-    name: '', description: '', price: '', quantity: '', image: null
+    name: '', description: '', price: '', quantity: '', image: null, category:'Vegetable'
   });
   const [addLoading, setAddLoading] = useState(false);
 
@@ -73,8 +78,8 @@ const FarmerDashboard = () => {
         if (val !== null) formData.append(key, val);
       });
 
-      await addFarmerProduct(user._id, formData);
-      setNewProduct({ name: '', description: '', price: '', quantity: '', image: null });
+      await addFarmerProduct(formData);
+      setNewProduct({ name: '', description: '', price: '', quantity: '', image: null, category:'Vegetable'});
       fetchProducts();
     } catch (err) {
       alert('Failed to add product.');
@@ -141,6 +146,15 @@ const FarmerDashboard = () => {
           Ready to share your freshest harvest with the community?
         </Typography>
       </Box>
+      <Box textAlign="right" mb={2}>
+  <Button
+    variant="contained"
+    onClick={() => setChatOpen(true)}
+    sx={{ borderRadius: 3 }}
+  >
+    Open Chat
+  </Button>
+</Box>
 
       {/* Add Product Form */}
       <Box
@@ -166,7 +180,7 @@ const FarmerDashboard = () => {
             <TextField fullWidth label="Price (₹)" name="price" type="number" value={newProduct.price} onChange={handleInputChange} required />
           </Grid>
           <Grid item xs={6} sm={3} md={2}>
-            <TextField fullWidth label="Quantity" name="quantity" type="number" value={newProduct.quantity} onChange={handleInputChange} required />
+            <TextField fullWidth label="Quantity" name="quantity" type="number" value={newProduct.quantityAvailable} onChange={handleInputChange} required />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <Button fullWidth variant="outlined" component="label">
@@ -185,6 +199,21 @@ const FarmerDashboard = () => {
               {addLoading ? 'Adding...' : 'Add Product'}
             </Button>
           </Grid>
+          <Grid item xs={12} sm={6} md={4}> 
+            <TextField
+              select
+              fullWidth
+              label="Product Type"
+              name="category"
+              value={newProduct.category}
+              onChange={handleInputChange}
+              required
+            >
+              {['Vegetable', 'Fruit', 'Honey', 'Dairy'].map((option)=>(
+                <MenuItem key={option} value={option}> {option}</MenuItem>
+              ))}
+            </TextField>
+          </Grid>
         </Grid>
       </Box>
 
@@ -199,10 +228,10 @@ const FarmerDashboard = () => {
         {products.map((product) => (
           <Grid item xs={12} sm={6} md={4} key={product._id}>
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              {product.imageUrl && (
+              {product.images?.[0] && (
                 <Box
                   component="img"
-                  src={product.imageUrl}
+                  src={`http://localhost:5000/${product.images[0]}`}
                   alt={product.name}
                   sx={{ width: '100%', height: 180, objectFit: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
                 />
@@ -249,6 +278,7 @@ const FarmerDashboard = () => {
           Logout
         </Button>
       </Box>
+      {chatOpen && <ChatWithConsumers farmer={user} />}
     </Box>
   );
 };
