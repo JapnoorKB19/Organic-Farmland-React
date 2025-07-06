@@ -11,7 +11,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { MenuItem } from '@mui/material';
 import ChatWithConsumers from "../ChatWithConsumers";
 
-
 import {
   getFarmerProducts,
   addFarmerProduct,
@@ -19,10 +18,11 @@ import {
   deleteFarmerProduct
 } from '../../api/farmProductAPI';
 
+import { getConversations } from '../../api/chatAPI'; // make sure this path is correct
+
 const FarmerDashboard = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [chatOpen, setChatOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user'));
   const userName = user?.name || 'Farmer';
@@ -39,6 +39,11 @@ const FarmerDashboard = () => {
 
   const [editingProduct, setEditingProduct] = useState(null);
 
+  // New states for chat
+  const [chatOpen, setChatOpen] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [currentConvoId, setCurrentConvoId] = useState(null);
+
   useEffect(() => {
     const timer = setTimeout(() => setOpenSnackbar(false), 4000);
     return () => clearTimeout(timer);
@@ -47,6 +52,26 @@ const FarmerDashboard = () => {
   useEffect(() => {
     fetchProducts();
   }, [user._id]);
+
+  // Fetch farmer conversations when chat drawer opens
+  useEffect(() => {
+    if (!chatOpen) return;
+
+    const fetchConversations = async () => {
+      try {
+        const res = await getConversations(user._id);
+        setConversations(res.data);
+
+        if (res.data.length > 0 && !currentConvoId) {
+          setCurrentConvoId(res.data[0]._id);
+        }
+      } catch (err) {
+        console.error("Failed to load conversations", err);
+      }
+    };
+
+    fetchConversations();
+  }, [chatOpen, user._id, currentConvoId]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -130,6 +155,12 @@ const FarmerDashboard = () => {
     navigate('/login');
   };
 
+  // Helper to get consumer's name from conversation participants
+  const getConsumerName = (participants) => {
+    const consumer = participants.find(p => p._id !== user._id);
+    return consumer?.name || "User";
+  };
+
   return (
     <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: '1200px', mx: 'auto', backgroundColor: '#f3fff4', minHeight: '100vh' }}>
       <Snackbar open={openSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
@@ -146,15 +177,37 @@ const FarmerDashboard = () => {
           Ready to share your freshest harvest with the community?
         </Typography>
       </Box>
+
+      {/* Chat Consumer Selection */}
       <Box textAlign="right" mb={2}>
-  <Button
-    variant="contained"
-    onClick={() => setChatOpen(true)}
-    sx={{ borderRadius: 3 }}
-  >
-    Open Chat
-  </Button>
-</Box>
+        <Button
+          variant="contained"
+          onClick={() => setChatOpen(true)}
+          sx={{ borderRadius: 3 }}
+        >
+          Open Chat
+        </Button>
+      </Box>
+
+      {chatOpen && (
+        <Box mb={2}>
+          <Typography variant="subtitle1" mb={1}>Select Consumer to Chat</Typography>
+          {conversations.length === 0 && <Typography>No conversations found.</Typography>}
+          {conversations.map((convo) => {
+            const consumerName = getConsumerName(convo.participants);
+            return (
+              <Button
+                key={convo._id}
+                variant={currentConvoId === convo._id ? "contained" : "outlined"}
+                sx={{ m: 0.5 }}
+                onClick={() => setCurrentConvoId(convo._id)}
+              >
+                {consumerName}
+              </Button>
+            );
+          })}
+        </Box>
+      )}
 
       {/* Add Product Form */}
       <Box
@@ -180,7 +233,7 @@ const FarmerDashboard = () => {
             <TextField fullWidth label="Price (₹)" name="price" type="number" value={newProduct.price} onChange={handleInputChange} required />
           </Grid>
           <Grid item xs={6} sm={3} md={2}>
-            <TextField fullWidth label="Quantity" name="quantity" type="number" value={newProduct.quantityAvailable} onChange={handleInputChange} required />
+            <TextField fullWidth label="Quantity" name="quantity" type="number" value={newProduct.quantity} onChange={handleInputChange} required />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <Button fullWidth variant="outlined" component="label">
@@ -199,7 +252,7 @@ const FarmerDashboard = () => {
               {addLoading ? 'Adding...' : 'Add Product'}
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6} md={4}> 
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
@@ -278,7 +331,15 @@ const FarmerDashboard = () => {
           Logout
         </Button>
       </Box>
-      {chatOpen && <ChatWithConsumers farmer={user} />}
+
+      {/* Chat Drawer */}
+      {chatOpen && (
+        <ChatWithConsumers
+          open={chatOpen}
+          onClose={() => setChatOpen(false)}
+          initialConvoId={currentConvoId}
+        />
+      )}
     </Box>
   );
 };

@@ -87,6 +87,19 @@ const login = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("Error in /me route:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 const logout = (req, res) => {
   res.json({ message: "Logout successful" });
 };
@@ -96,4 +109,4 @@ const test = (req, res) => {
     res.send("AuthController Test Route Working");
   };
   
-module.exports = { register, login, logout, test };
+module.exports = { register, login, logout, test, getMe };

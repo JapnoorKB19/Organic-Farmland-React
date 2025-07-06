@@ -1,6 +1,6 @@
 const express = require("express");
-const { register, login, logout, test } = require("../controllers/authController");
-
+const { register, login, logout, test, getMe} = require("../controllers/authController");
+const auth = require("../middleware/auth");
 const router = express.Router();
 
 // User Registration
@@ -18,6 +18,8 @@ router.post("/logout", logout);
 router.get("/test", (req, res) => {
   res.send("Auth route working");
 });
+
+router.get("/me", auth, getMe);
 
 router.get("/controller-test", test);
 

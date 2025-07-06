@@ -11,57 +11,68 @@ import {
   Divider,
   Drawer,
   Button,
+  IconButton as MuiIconButton
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import CloseIcon from "@mui/icons-material/Close";
 import { useChat } from "../context/ChatContext";
-import { useAuth } from "../context/AuthContext"; // your auth context
+import { useAuth } from "../context/AuthContext";
+import {
+  getConversations,
+  getMessages,
+  sendMessage as sendChatMessage,
+} from "../api/chatAPI";
 import axios from "axios";
 
-export default function ChatWithConsumers() {
+export default function ChatWithConsumers({ open, onClose, initialConvoId }) {
   const { socket } = useChat();
-  const { user } = useAuth(); // logged-in farmer
+  const { user } = useAuth();
   const farmerId = user?._id;
 
-  const [conversations, setConversations] = useState([]); // array of { _id, participants }
-  const [messagesMap, setMessagesMap] = useState({}); // convoId -> messages[]
-  const [currentConvoId, setCurrentConvoId] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [messagesMap, setMessagesMap] = useState({});
+  const [currentConvoId, setCurrentConvoId] = useState(initialConvoId || null);
   const [newMsg, setNewMsg] = useState("");
 
   const bottomRef = useRef(null);
 
-  // Scroll chat to bottom on messages change
+  // Scroll to bottom when messages or convo changes
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesMap, currentConvoId]);
 
-  // 1️⃣ Load conversations on mount
+  // Update currentConvoId if initialConvoId changes from parent
+  useEffect(() => {
+    if (initialConvoId && initialConvoId !== currentConvoId) {
+      setCurrentConvoId(initialConvoId);
+    }
+  }, [initialConvoId]);
+
+
+  // Fetch conversations once when component mounts or farmerId changes
   useEffect(() => {
     if (!farmerId) return;
 
     const fetchConversations = async () => {
       try {
-        const res = await axios.get(`/api/chat/conversations/${farmerId}`);
+        const res = await getConversations(farmerId);
         setConversations(res.data);
-
-        // Auto-select first conversation if none selected
-        if (res.data.length > 0 && !currentConvoId) {
-          setCurrentConvoId(res.data[0]._id);
-        }
+        // Do NOT set currentConvoId here to avoid overriding prop-driven state
       } catch (err) {
         console.error("Failed to load conversations", err);
       }
     };
 
     fetchConversations();
-  }, [farmerId, currentConvoId]);
+  }, [farmerId]);
 
-  // 2️⃣ Load messages for current convo & join socket room
+  // Fetch messages for current conversation and handle socket events
   useEffect(() => {
     if (!currentConvoId) return;
 
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`/api/chat/messages/${currentConvoId}`);
+        const res = await getMessages(currentConvoId);
         setMessagesMap((prev) => ({ ...prev, [currentConvoId]: res.data }));
       } catch (err) {
         console.error("Failed to load messages", err);
@@ -70,11 +81,10 @@ export default function ChatWithConsumers() {
 
     fetchMessages();
 
-    // Join socket room for real-time updates
     socket.emit("joinRoom", { chatId: currentConvoId });
 
-    // Listen for messages for this convo
     socket.on("receiveMessage", (message) => {
+      console.log("Client received message:", message); // Add this!
       if (message.chatId === currentConvoId) {
         setMessagesMap((prev) => {
           const msgs = prev[currentConvoId] ?? [];
@@ -88,28 +98,21 @@ export default function ChatWithConsumers() {
     };
   }, [currentConvoId, socket]);
 
-  // 3️⃣ Send message handler
   const sendMessage = async () => {
     if (!newMsg.trim() || !currentConvoId) return;
 
-    const messageToSend = {
-      chatId: currentConvoId,
-      senderId: farmerId,
-      text: newMsg,
-    };
-
     try {
-      // Save message in DB
-      const res = await axios.post("/api/chat/message", messageToSend);
+      const res = await sendChatMessage(currentConvoId, farmerId, newMsg.trim());
 
-      // Optimistically update UI
       setMessagesMap((prev) => {
         const msgs = prev[currentConvoId] ?? [];
         return { ...prev, [currentConvoId]: [...msgs, res.data] };
       });
 
-      // Emit message via socket
-      socket.emit("sendMessage", { chatId: currentConvoId, message: res.data });
+      socket.emit("sendMessage", {
+        chatId: currentConvoId,
+        message: res.data,
+      });
 
       setNewMsg("");
     } catch (err) {
@@ -117,25 +120,27 @@ export default function ChatWithConsumers() {
     }
   };
 
-  // Helper to get consumer's userId in a conversation (other than farmer)
-  const getConsumerId = (participants) =>
-    participants.find((p) => p._id !== farmerId)?._id;
+  const getConsumerName = (participants) =>
+    participants.find((p) => p._id !== farmerId)?.name || "User";
 
   return (
     <Drawer
       anchor="right"
-      open // control this with dashboard state if needed
+      open={open}
+      onClose={onClose}
       PaperProps={{ sx: { width: { xs: "100%", md: 380 }, p: 2 } }}
     >
-      <Typography variant="h6" mb={1}>
-        Chats
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h6">Chats</Typography>
+        <MuiIconButton onClick={onClose}>
+          <CloseIcon />
+        </MuiIconButton>
+      </Box>
 
       <Box display="flex" gap={2}>
-        {/* Conversation list */}
         <Box sx={{ width: 110, borderRight: "1px solid #ddd" }}>
           {conversations.map((convo) => {
-            const consumerId = getConsumerId(convo.participants);
+            const consumerName = getConsumerName(convo.participants);
             return (
               <Button
                 key={convo._id}
@@ -143,19 +148,18 @@ export default function ChatWithConsumers() {
                 variant={currentConvoId === convo._id ? "contained" : "text"}
                 onClick={() => setCurrentConvoId(convo._id)}
               >
-                {consumerId?.slice(-4) ?? "User"}
+                {consumerName}
               </Button>
             );
           })}
         </Box>
 
-        {/* Chat panel */}
         <Box flexGrow={1} display="flex" flexDirection="column" height="70vh">
           <Paper sx={{ flexGrow: 1, overflowY: "auto", p: 1 }}>
             <List>
               {(messagesMap[currentConvoId] ?? []).map((msg) => (
                 <ListItem
-                  key={msg._id}
+                  key={msg._id || Math.random()}
                   sx={{
                     justifyContent:
                       msg.senderId === farmerId ? "flex-end" : "flex-start",

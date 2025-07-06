@@ -7,6 +7,8 @@ const { Server } = require("socket.io"); // <-- add this
 const connectDB = require("./config/db");
 const path = require("path");
 const chatRoutes = require('./routes/chatRoutes');
+const farmerRoutes = require('./routes/farmerRoutes');
+const consumerRoutes = require('./routes/consumerRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +24,10 @@ app.use(cors({
 app.use(express.json());
 
 app.use('/api/chat', chatRoutes);
+
+app.use('/api/farmers', farmerRoutes);
+
+app.use('/api/consumers', consumerRoutes);
 
 // Debug: Log environment variables
 console.log("Client URL:", process.env.CLIENT_URL);
@@ -98,6 +104,7 @@ io.on("connection", (socket) => {
   // Send message to a conversation room
   socket.on("sendMessage", ({ chatId, message }) => {
     // Broadcast message to all sockets in the room except sender
+    console.log(`Server received sendMessage: chatId=${chatId}, message=${message.text}`); // Add this!
     socket.to(chatId).emit("receiveMessage", message);
   });
 

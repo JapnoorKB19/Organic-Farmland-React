@@ -1,5 +1,4 @@
-// src/pages/dashboards/ConsumerDashboard.jsx
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Typography,
@@ -7,8 +6,9 @@ import {
   Snackbar,
   Alert,
   Paper,
-  Stack
-} from '@mui/material'
+  Stack,
+  Drawer
+} from '@mui/material';
 import {
   ShoppingCart,
   Explore,
@@ -16,35 +16,45 @@ import {
   Chat,
   RateReview,
   Logout
-} from '@mui/icons-material'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 
 const ConsumerDashboard = () => {
-  const { logout } = useAuth()
-  const navigate = useNavigate()
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem('user'))
-  const userName = user?.name || 'Consumer'
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userName = user?.name || 'Consumer';
 
-  const [openSnackbar, setOpenSnackbar] = useState(true)
+  const [openSnackbar, setOpenSnackbar] = useState(true);
+  const [openChatDrawer, setOpenChatDrawer] = useState(false);
+  const [farmers, setFarmers] = useState([]);
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setOpenSnackbar(false), 4000)
-    return () => clearTimeout(timer)
-  }, [])
+    const timer = setTimeout(() => setOpenSnackbar(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
-  if (!user) {
-    navigate('/login')
-  }
-}, [user])
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user]);
 
+  useEffect(() => {
+    if (openChatDrawer) {
+      fetch('http://localhost:5000/api/farmers') // 🔁 update this if using deployed backend
+        .then((res) => res.json())
+        .then((data) => setFarmers(data))
+        .catch(console.error);
+    }
+  }, [openChatDrawer]);
 
   return (
     <Box
@@ -116,7 +126,7 @@ const ConsumerDashboard = () => {
             <Button
               variant="contained"
               startIcon={<Chat />}
-              onClick={() => navigate('/chat')}
+              onClick={() => setOpenChatDrawer(true)}
             >
               Chat with Farmers
             </Button>
@@ -141,8 +151,38 @@ const ConsumerDashboard = () => {
           Logout
         </Button>
       </Paper>
-    </Box>
-  )
-}
 
-export default ConsumerDashboard
+      {/* Chat Drawer */}
+      <Drawer
+        anchor="right"
+        open={openChatDrawer}
+        onClose={() => setOpenChatDrawer(false)}
+        PaperProps={{ sx: { width: 300, p: 2 } }}
+      >
+        <Typography variant="h6" gutterBottom>
+          Chat with a Farmer
+        </Typography>
+        {farmers.length === 0 ? (
+          <Typography>No farmers found.</Typography>
+        ) : (
+          farmers.map((farmer) => (
+            <Button
+              key={farmer._id}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 1 }}
+              onClick={() => {
+                navigate(`/chat/${farmer._id}`);
+                setOpenChatDrawer(false);
+              }}
+            >
+              {farmer.name}
+            </Button>
+          ))
+        )}
+      </Drawer>
+    </Box>
+  );
+};
+
+export default ConsumerDashboard;
